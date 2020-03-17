@@ -3,7 +3,7 @@
  * @@Copyright (C), 2019-2020: 甲木公司
  * @Author: xsm
  * @Date: 2020-03-16 22:21:16
- * @LastEditTime: 2020-03-17 17:03:50
+ * @LastEditTime: 2020-03-17 23:51:20
  * @Description: 
  */
 define('APP_PATH', dirname(__DIR__) . DIRECTORY_SEPARATOR);
@@ -18,7 +18,6 @@ function load(string $class)
     } elseif (0 === stripos($class, 'noone')) {
         $file = LIB_PATH . $path . '.php';
     }
-    echo $file;
     if (file_exists($file)) {
         include $file;
         return true;
@@ -27,4 +26,13 @@ function load(string $class)
 
 spl_autoload_register('load');
 
-new noone\Cache;
+noone\Route::get('/', function($a){
+    echo 123 .$a;
+});
+
+noone\Route::$error = function(){
+    echo '99999';
+};
+noone\Route::dispatch();
+
+exit();
