@@ -3,20 +3,28 @@
  * @@Copyright (C), 2019-2020: 甲木公司
  * @Author: xsm
  * @Date: 2020-03-16 22:21:16
- * @LastEditTime: 2020-03-16 23:18:58
+ * @LastEditTime: 2020-03-17 17:03:50
  * @Description: 
  */
-define('APP_PATH',__DIR__);
+define('APP_PATH', dirname(__DIR__) . DIRECTORY_SEPARATOR);
+
+define('LIB_PATH', dirname(__DIR__) . DIRECTORY_SEPARATOR . 'lib/src' . DIRECTORY_SEPARATOR);
+
 function load(string $class)
 {
-    $class = str_replace('\\','/',$class);
-    $file = "{$class}.php";
-    if(file_exists($file)){
-        include $file;
+    $path = strtr($class, '\\', DIRECTORY_SEPARATOR);
+    if (0 === stripos($class, 'app')) {
+        $file = APP_PATH . $path . '.php';
+    } elseif (0 === stripos($class, 'noone')) {
+        $file = LIB_PATH . $path . '.php';
     }
     echo $file;
+    if (file_exists($file)) {
+        include $file;
+        return true;
+    }
 }
 
 spl_autoload_register('load');
 
-new noone\cache\redis();
+new noone\Cache;
