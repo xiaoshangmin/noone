@@ -3,7 +3,7 @@
  * @@Copyright (C), 2019-2020: 甲木公司
  * @Author: xsm
  * @Date: 2020-03-18 09:44:58
- * @LastEditTime: 2020-03-18 10:46:05
+ * @LastEditTime: 2020-03-22 23:20:39
  * @Description: 
  */
 
@@ -48,6 +48,16 @@ class Request
     }
 
     public function get(string $name = '', string $default = '')
+    {
+        if (empty($name)) {
+            return $this->get;
+        } else {
+            $name = $name;
+        }
+        return $this->get[$name] ?? $default;
+    }
+
+    public function post(string $name = '', string $default = '')
     {
         if (empty($name)) {
             return $this->get;

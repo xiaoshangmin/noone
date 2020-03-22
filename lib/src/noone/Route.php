@@ -3,7 +3,7 @@
  * @@Copyright (C), 2019-2020: 甲木公司
  * @Author: xsm
  * @Date: 2020-03-17 17:07:48
- * @LastEditTime: 2020-03-17 23:50:08
+ * @LastEditTime: 2020-03-22 23:18:43
  * @Description: 
  */
 
@@ -43,11 +43,13 @@ class Route
         $route_indexs = array_keys(self::$routes, $uri);
         foreach ($route_indexs as $index) {
             if ((self::$methods[$index] == $method) && isset(self::$callbacks[$index])) {
-                if (self::$callbacks[$index] instanceof \Closure) {
-                    $found_route = true;
-                    call_user_func(self::$callbacks[$index], 14);
-                    return;
-                }
+                Container::getInstance()->exec(self::$callbacks[$index]);
+                return;
+                // if (self::$callbacks[$index] instanceof \Closure) {
+                //     $found_route = true;
+                //     call_user_func(self::$callbacks[$index]);
+                //     return;
+                // }
             }
         }
         if (!$found_route) {
