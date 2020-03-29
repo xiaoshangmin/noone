@@ -3,6 +3,7 @@
 namespace noone;
 
 use Closure;
+use Exception;
 use ReflectionClass;
 use ReflectionFunction;
 
@@ -10,6 +11,8 @@ class Container implements ContainerInterface
 {
 
     protected static $instance;
+
+    protected static $bind = [];
 
     public static function getInstance()
     {
@@ -49,13 +52,70 @@ class Container implements ContainerInterface
             $reflect = new ReflectionClass($class);
             return $reflect->newInstanceArgs();
         } catch (\ReflectionException $e) {
-            echo $e->getMessage();
-            die();
+            throw new Exception($e->getMessage());
         }
+
+        $construct = $reflect->getConstructor();
+        $params = $construct ? static::getParams($construct) : [];
+        return $reflect->newInstanceArgs($params);
     }
 
-    public function get(string $id)
+
+    public static function bind($service, $provider, $singleton = false)
     {
+        if ($singleton && !is_object($provider)) {
+            throw new Exception("error1");
+        }
+
+        if (!$singleton && !class_exists($provider)) {
+            throw new Exception("error2");
+        }
+        static::$bind[$service] = [
+            'provider' => $provider,
+            'singleton' => $singleton,
+        ];
+    }
+
+    public static function getParams(\ReflectionFunctionAbstract $reflection)
+    {
+        $params['params'] = [];
+        $params['default'] = [];
+
+        $parameters = $reflection->getParameters();
+        foreach ($parameters as $key => $param) {
+            $param_class = $param->getClass();
+            if ($param_class) {
+                $param_class_name = $param_class->getName();
+                if (array_key_exists($param_class_name, static::$bind)) {
+                    if (static::$bind[$param_class_name]['singleton']) {
+                        $params['params'][] = static::$bind[$param_class_name]['provider'];
+                    } else {
+                        $params['params'][] = static::getInstance(static::$bind[$param_class_name]['provider']);
+                    }
+                } else {
+                    $paramName = $param->getName();
+                    if ($param->isDefaultValueAvailable()) {
+                        $defaultValue = $param->getDefaultValue();
+                        $params['default'][$paramName] = $defaultValue;
+                    }
+                    $params['params'][] = $paramName;
+                }
+            }
+        }
+        return $params;
+    }
+
+    public function __get($name)
+    {
+        $this->get($name);
+    }
+
+
+    public function get(string $abstract)
+    {
+        if (isset($this->bind[$abstract])) {
+            $this->exec($this->bind[$abstract]);
+        }
     }
 
     public function has(string $id)
