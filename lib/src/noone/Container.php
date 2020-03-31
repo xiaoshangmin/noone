@@ -12,7 +12,7 @@ class Container implements ContainerInterface
 
     protected static $instance;
 
-    protected static $bind = [];
+    protected $bind = [];
 
     public static function getInstance()
     {
@@ -50,7 +50,6 @@ class Container implements ContainerInterface
     {
         try {
             $reflect = new ReflectionClass($class);
-            return $reflect->newInstanceArgs();
         } catch (\ReflectionException $e) {
             throw new Exception($e->getMessage());
         }
@@ -80,17 +79,17 @@ class Container implements ContainerInterface
     {
         $params['params'] = [];
         $params['default'] = [];
-
         $parameters = $reflection->getParameters();
         foreach ($parameters as $key => $param) {
             $param_class = $param->getClass();
+
             if ($param_class) {
-                $param_class_name = $param_class->getName();
-                if (array_key_exists($param_class_name, static::$bind)) {
-                    if (static::$bind[$param_class_name]['singleton']) {
-                        $params['params'][] = static::$bind[$param_class_name]['provider'];
+                $param_class_name = $param_class->getName(); 
+                if (array_key_exists($param_class_name, $this->bind)) {
+                    if ($this->bind[$param_class_name]['singleton']) {
+                        $params['params'][] = $this->bind[$param_class_name]['provider'];
                     } else {
-                        $params['params'][] = static::getInstance(static::$bind[$param_class_name]['provider']);
+                        $params['params'][] = static::getInstance($this->bind[$param_class_name]['provider']);
                     }
                 } else {
                     $paramName = $param->getName();

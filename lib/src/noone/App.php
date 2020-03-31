@@ -9,7 +9,7 @@ class App extends Container
 {
 
 
-    public static $bind = [
+    public $bind = [
         'request' => Request::class
     ];
 
@@ -19,15 +19,15 @@ class App extends Container
 
     public function run()
     {
-        $this->route();
+        $request = $this->request;
+        print_r($request);
     }
 
     public function route()
     {
-       
     }
 
-    
+
 
     public static function getInstance($className)
     {

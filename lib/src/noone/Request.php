@@ -3,7 +3,7 @@
  * @@Copyright (C), 2019-2020: 甲木公司
  * @Author: xsm
  * @Date: 2020-03-18 09:44:58
- * @LastEditTime: 2020-03-22 23:20:39
+ * @LastEditTime: 2020-03-31 18:48:42
  * @Description: 
  */
 
@@ -18,7 +18,7 @@ class Request
     public $header = [];
     public $file = [];
 
-    public function __construct()
+    public function __construct(Request $a)
     {
         $this->get = $_GET;
         $this->post = file_get_contents('php://input');
