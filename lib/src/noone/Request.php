@@ -18,13 +18,25 @@ class Request
     public $header = [];
     public $file = [];
 
-    public function __construct(Request $a)
+    public function __construct()
     {
         $this->get = $_GET;
         $this->post = file_get_contents('php://input');
         $this->server = $_SERVER;
         $this->file = $_FILES;
-        $this->header = array_change_key_case(apache_request_headers());
+        if (function_exists('apache_request_headers')) {
+            $header = apache_request_headers();
+        } else {
+            $header = [];
+            $server = $_SERVER;
+            foreach ($server as $key => $val) {
+                if (0 === strpos($key, 'HTTP_')) {
+                    $key = strtolower(substr($key, 5));
+                    $header[$key] = $val;
+                }
+            }
+        }
+        $this->header = array_change_key_case($header);
     }
 
     public function server(string $name = '', string $default = '')

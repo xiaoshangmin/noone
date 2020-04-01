@@ -2,15 +2,15 @@
 
 namespace noone;
 
-
-use ReflectionClass;
-
 class App extends Container
 {
 
 
     public $bind = [
-        'request' => Request::class
+        'request' => Request::class,
+        'response' => Response::class,
+        'cache' => Cache::class,
+        'route' =>  Route::class,
     ];
 
     public function __construct()
@@ -19,19 +19,11 @@ class App extends Container
 
     public function run()
     {
-        $request = $this->request;
-        print_r($request);
+        $this->route();
     }
 
     public function route()
     {
-    }
-
-
-
-    public static function getInstance($className)
-    {
-        $params = self::getParams($className);
-        return (new ReflectionClass($className))->newInstanceArgs($params);
+        
     }
 }

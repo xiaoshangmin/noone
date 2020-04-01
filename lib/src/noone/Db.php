@@ -2,10 +2,6 @@
 
 namespace noone;
 
-
-
-class Ioc
-{
-
+class Db{
     
 }

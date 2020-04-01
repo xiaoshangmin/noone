@@ -55,12 +55,12 @@ class Container implements ContainerInterface
         }
 
         $construct = $reflect->getConstructor();
-        $params = $construct ? static::getParams($construct) : [];
+        $params = $construct ? $this->getParams($construct) : [];
         return $reflect->newInstanceArgs($params);
     }
 
 
-    public static function bind($service, $provider, $singleton = false)
+    public function bind($service, $provider, $singleton = false)
     {
         if ($singleton && !is_object($provider)) {
             throw new Exception("error1");
@@ -69,22 +69,22 @@ class Container implements ContainerInterface
         if (!$singleton && !class_exists($provider)) {
             throw new Exception("error2");
         }
-        static::$bind[$service] = [
+        $this->bind[$service] = [
             'provider' => $provider,
             'singleton' => $singleton,
         ];
     }
 
-    public static function getParams(\ReflectionFunctionAbstract $reflection)
+    public function getParams(\ReflectionFunctionAbstract $reflection)
     {
         $params['params'] = [];
         $params['default'] = [];
         $parameters = $reflection->getParameters();
         foreach ($parameters as $key => $param) {
             $param_class = $param->getClass();
-
             if ($param_class) {
                 $param_class_name = $param_class->getName(); 
+                print_r($param_class_name);
                 if (array_key_exists($param_class_name, $this->bind)) {
                     if ($this->bind[$param_class_name]['singleton']) {
                         $params['params'][] = $this->bind[$param_class_name]['provider'];
@@ -106,14 +106,14 @@ class Container implements ContainerInterface
 
     public function __get($name)
     {
-        $this->get($name);
+        return $this->get($name);
     }
 
 
     public function get(string $abstract)
     {
         if (isset($this->bind[$abstract])) {
-            $this->exec($this->bind[$abstract]);
+            return $this->exec($this->bind[$abstract]);
         }
     }
 

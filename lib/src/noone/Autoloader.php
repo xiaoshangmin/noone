@@ -19,7 +19,6 @@ class Autoloader
     public function loadClass(string $class):bool
     {
         $path = strtr($class, '\\', DIRECTORY_SEPARATOR);
-        $path = ltrim($path, '/');
         if (0 === strpos('app', $path)) {
             $file = APP_PATH . "{$path}.php";
         } else {
