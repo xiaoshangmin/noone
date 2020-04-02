@@ -54,7 +54,7 @@ class Container implements ContainerInterface
             throw new Exception($e->getMessage());
         }
 
-        $construct = $reflect->getConstructor();
+        $construct = $reflect->getConstructor(); 
         $params = $construct ? $this->getParams($construct) : [];
         return $reflect->newInstanceArgs($params);
     }
@@ -79,12 +79,11 @@ class Container implements ContainerInterface
     {
         $params['params'] = [];
         $params['default'] = [];
-        $parameters = $reflection->getParameters();
-        foreach ($parameters as $key => $param) {
-            $param_class = $param->getClass();
+        $parameters = $reflection->getParameters(); 
+        foreach ($parameters as $param) {
+            $param_class = $param->getClass(); 
             if ($param_class) {
-                $param_class_name = $param_class->getName(); 
-                print_r($param_class_name);
+                $param_class_name = $param_class->getName();  
                 if (array_key_exists($param_class_name, $this->bind)) {
                     if ($this->bind[$param_class_name]['singleton']) {
                         $params['params'][] = $this->bind[$param_class_name]['provider'];
@@ -105,7 +104,7 @@ class Container implements ContainerInterface
     }
 
     public function __get($name)
-    {
+    { 
         return $this->get($name);
     }
 
