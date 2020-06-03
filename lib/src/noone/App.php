@@ -6,7 +6,7 @@ class App extends Container
 {
 
 
-    protected $bind = [
+    protected array $alias = [
         'app' => App::class,
         'request' => Request::class,
         'response' => Response::class,
@@ -15,30 +15,30 @@ class App extends Container
     ];
 
 
-    protected $appPath = '';
+    protected string $libPath = '';
+    protected string $appPath = '';
 
     public function __construct(string $appPath = '')
     {
-        $this->appPath =  $appPath ? rtrim($appPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : $this->getDefaultAppPath();
+        $this->libPath = dirname(__DIR__) . DIRECTORY_SEPARATOR;
+        $this->appPath =  $appPath ? rtrim($appPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : $this->getAppPath();
     }
 
-    protected function getDefaultAppPath(): string
+    public function getAppPath(): string
     {
-        return dirname(dirname(dirname(__DIR__))) . DIRECTORY_SEPARATOR . "app";
+        return dirname(dirname($this->libPath)) . DIRECTORY_SEPARATOR . "app".DIRECTORY_SEPARATOR;
     }
 
     public function run()
     {
-        $this->route();
+        $request = $this->get('request');
+        $this->route($request);
     }
 
-    public function route()
+    protected function route($request)
     {
         $this->route->loadRoutes();
+        $this->route->dispatch($request);
     }
 
-    public function FunctionName()
-    {
-        # code...
-    }
 }

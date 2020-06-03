@@ -29,5 +29,6 @@ class Autoloader
             include $file;
             return true;
         }
+        return false;
     }
 }

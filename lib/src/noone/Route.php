@@ -1,26 +1,19 @@
 <?php
-/*
- * @@Copyright (C), 2019-2020: 甲木公司
- * @Author: xsm
- * @Date: 2020-03-17 17:07:48
- * @LastEditTime: 2020-04-02 19:40:28
- * @Description: 
- */
 
 namespace noone;
 
 class Route
 {
 
-    public static $methods = [];
+    public static array $methods = [];
 
-    public static $routes = [];
+    public static array $routes = [];
 
-    public static $callbacks = [];
+    public static array $callbacks = [];
 
     public static $error;
 
-    protected $app;
+    protected App $app;
 
     public function __construct(App $app)
     { 
@@ -30,43 +23,47 @@ class Route
     public static function __callStatic(string $method, array $arguments)
     {
 
-        $route = $arguments[0];
+        $routePath = $arguments[0];
         $callback = $arguments[1];
 
         self::$methods[] = strtoupper($method);
         self::$callbacks[] = $callback;
-        self::$routes[] = $route;
+        self::$routes[] = $routePath;
     }
 
     public function loadRoutes()
     {
-        $routeFile = $this->app->rootPath . "route" . DIRECTORY_SEPARATOR . "route.php";
+        $routeFile = $this->app->getAppPath() . "route" . DIRECTORY_SEPARATOR . "route.php";
         if (file_exists($routeFile)) {
             include_once $routeFile;
         }
     }
 
-    public static function dispatch()
+    public function dispatch(Request $request)
     {
-        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $uri = parse_url($request->server('REQUEST_URI'), PHP_URL_PATH);
         if ('/' != $uri) {
             $uri = rtrim($uri, '/');
         }
         $found_route = false;
-        // $query_string = $_SERVER['QUERY_STRING'];
-        $method = $_SERVER['REQUEST_METHOD'];
-        $route_indexs = array_keys(self::$routes, $uri);
-        foreach ($route_indexs as $index) {
+        $method = $request->server('REQUEST_METHOD');
+        $route_index = array_keys(self::$routes, $uri);
+        foreach ($route_index as $index) {
             if ((self::$methods[$index] == $method) && isset(self::$callbacks[$index])) {
-                Container::getInstance()->exec(self::$callbacks[$index]);
+                if (is_string(self::$callbacks[$index])){
+
+                }else
+                {
+                    Container::getInstance()->exec(self::$callbacks[$index]);
+                }
                 return;
-                // if (self::$callbacks[$index] instanceof \Closure) {
-                //     $found_route = true;
-                //     call_user_func(self::$callbacks[$index]);
-                //     return;
-                // }
             }
         }
+
+        if (!$found_route){
+            $this->parseUrl();
+        }
+
         if (!$found_route) {
             if (!self::$error) {
                 self::$error = function () {
@@ -74,10 +71,15 @@ class Route
                 };
                 call_user_func(self::$error);
             } elseif (is_string(self::$error)) {
-                self::get($_SERVER['REQUEST_URI'], self::$error);
+                self::get($request->server('REQUEST_URI'), self::$error);
             } elseif (self::$error instanceof \Closure) {
                 call_user_func(self::$error);
             }
         }
+    }
+
+    protected function parseUrl(string $url)
+    {
+
     }
 }

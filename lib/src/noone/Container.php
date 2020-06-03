@@ -10,9 +10,9 @@ use ReflectionFunction;
 class Container implements ContainerInterface
 {
 
-    protected static $instance;
+    protected static $instance = null;
 
-    protected $bind = [];
+    protected array $alias = [];
 
     public static function getInstance()
     {
@@ -25,8 +25,10 @@ class Container implements ContainerInterface
     public function exec($abstract)
     {
         if ($abstract instanceof Closure) {
+            //匿名函数
             $object = $this->invokeFunc($abstract);
         } else {
+            //类
             $object = $this->invokeClass($abstract);
         }
         return $object;
@@ -50,18 +52,20 @@ class Container implements ContainerInterface
     {
         try {
             $reflect = new ReflectionClass($class);
-        } catch (\ReflectionException $e) {
+        } catch (ReflectionException $e) {
             throw new Exception($e->getMessage());
         }
 
         $construct = $reflect->getConstructor(); 
-        $params = $construct ? $this->getParams($construct) : [];
-        return $reflect->newInstanceArgs($params);
+//        $params = $construct ? $this->getParams($construct) : [];
+        $args = $this->bindParams($construct);
+        return $reflect->newInstanceArgs($args);
     }
 
 
     public function bind($service, $provider, $singleton = false)
     {
+
         if ($singleton && !is_object($provider)) {
             throw new Exception("error1");
         }
@@ -75,29 +79,37 @@ class Container implements ContainerInterface
         ];
     }
 
-    public function getParams(\ReflectionFunctionAbstract $reflection)
+
+    public function bindParams(\ReflectionFunctionAbstract $reflection)
     {
-        $params['params'] = [];
-        $params['default'] = [];
-        $parameters = $reflection->getParameters(); 
+        $params = [];
+        $parameters = $reflection->getParameters();
         foreach ($parameters as $param) {
-            $param_class = $param->getClass(); 
-            if ($param_class) {
-                $param_class_name = $param_class->getName();  
-                if (array_key_exists($param_class_name, $this->bind)) {
-                    if ($this->bind[$param_class_name]['singleton']) {
-                        $params['params'][] = $this->bind[$param_class_name]['provider'];
-                    } else {
-                        $params['params'][] = static::getInstance($this->bind[$param_class_name]['provider']);
-                    }
-                } else {
-                    $paramName = $param->getName();
-                    if ($param->isDefaultValueAvailable()) {
-                        $defaultValue = $param->getDefaultValue();
-                        $params['default'][$paramName] = $defaultValue;
-                    }
-                    $params['params'][] = $paramName;
+            $paramClassObj = $param->getClass();
+            if ($paramClassObj) {//有对象参数
+                $paramClassObjName = $paramClassObj->getName();
+//                //已经有绑定记录
+//                if (array_key_exists($paramName, $this->bind)) {
+//                    if ($this->bind[$paramName]['singleton']) {
+//                        $params['params'][] = $this->bind[$paramClassName]['provider'];
+//                    } else {
+//                        $params['params'][] = static::getInstance($this->bind[$paramClassName]['provider']);
+//                    }
+//                } else{
+//                    //没有绑定的记录
+//                    $params['params'][] = $this->exec($paramClassName);
+//                }
+                $params[] = $this->exec($paramClassObjName);
+
+            }else {
+                $paramName = $param->getName();
+
+                $defaultValue  = '';
+                if ($param->isDefaultValueAvailable()) {
+                    $defaultValue = $param->getDefaultValue();
                 }
+//                $type = $param->getType()->getName();
+                $params[$paramName] = $defaultValue;
             }
         }
         return $params;
@@ -111,12 +123,14 @@ class Container implements ContainerInterface
 
     public function get(string $abstract)
     {
-        if (isset($this->bind[$abstract])) {
-            return $this->exec($this->bind[$abstract]);
+        if (isset($this->alias[$abstract])) {
+            return $this->exec($this->alias[$abstract]);
         }
+        throw new \Exception('class not exists');
     }
 
-    public function has(string $id)
+    public function has(string $abstract)
     {
+        
     }
 }

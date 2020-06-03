@@ -12,18 +12,24 @@ namespace noone;
 class Request
 {
 
-    public $get = [];
-    public $post = [];
-    public $server = [];
-    public $header = [];
-    public $file = [];
+    public array $request = [];
+    public array $get = [];
+    public array $post = [];
+    public array $input = [];
+    public array $server = [];
+    public array $header = [];
+    public array $file = [];
+    public array $cookie = [];
 
     public function __construct()
     {
+        $this->request = $_REQUEST;
         $this->get = $_GET;
-        $this->post = file_get_contents('php://input');
+        $this->input = file_get_contents('php://input')?:[];
+        $this->post = $_POST;
         $this->server = $_SERVER;
-        $this->file = $_FILES;
+        $this->file = $_FILES??[];
+        $this->cookie = $_COOKIE;
         if (function_exists('apache_request_headers')) {
             $header = apache_request_headers();
         } else {
@@ -63,8 +69,6 @@ class Request
     {
         if (empty($name)) {
             return $this->get;
-        } else {
-            $name = $name;
         }
         return $this->get[$name] ?? $default;
     }
@@ -72,10 +76,44 @@ class Request
     public function post(string $name = '', string $default = '')
     {
         if (empty($name)) {
-            return $this->get;
-        } else {
-            $name = $name;
+            return $this->post;
         }
-        return $this->get[$name] ?? $default;
+        return $this->post[$name] ?? $default;
+    }
+
+    public function input(string $name = '', string $default = '')
+    {
+        if (empty($name)) {
+            return $this->input;
+        }
+        return $this->input[$name] ?? $default;
+    }
+
+    public function cookie(string $name = '',string $default = '')
+    {
+        if (empty($name)) {
+            return $this->cookie;
+        }
+        return $this->cookie[$name] ?? $default;
+    }
+
+    public function method():string
+    {
+        return $this->server('REQUEST_METHOD')?:'GET';
+    }
+
+    public function ip():string
+    {
+        return $this->server('REMOTE_ADDR');
+    }
+
+    public function isCgi():bool
+    {
+        return 0 === strpos(PHP_SAPI,'cgi');
+    }
+
+    public function isCli():bool
+    {
+        return PHP_SAPI == 'cli';
     }
 }
