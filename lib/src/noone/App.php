@@ -1,4 +1,4 @@
-<?php
+$this->routePath = $this->app->getRootPath() . 'route' . DIRECTORY_SEPARATOR;<?php
 
 namespace noone;
 
@@ -17,28 +17,49 @@ class App extends Container
 
     protected string $libPath = '';
     protected string $appPath = '';
+    protected string $routePath = '';
+    protected string $rootPath = '';
+    protected string $namespace = 'app';
 
-    public function __construct(string $appPath = '')
+    public function __construct(string $rootPath = '')
     {
         $this->libPath = dirname(__DIR__) . DIRECTORY_SEPARATOR;
-        $this->appPath =  $appPath ? rtrim($appPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : $this->getAppPath();
+        $this->rootPath    = $rootPath ? rtrim($rootPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : $this->getDefaultRootPath();
+        $this->appPath =  $this->rootPath. DIRECTORY_SEPARATOR . 'app';
+        $this->routePath = $this->rootPath . 'route' . DIRECTORY_SEPARATOR;
+    }
+
+    public function getDefaultRootPath()
+    {
+        return dirname(dirname($this->libPath)) . DIRECTORY_SEPARATOR ;
     }
 
     public function getAppPath(): string
     {
-        return dirname(dirname($this->libPath)) . DIRECTORY_SEPARATOR . "app".DIRECTORY_SEPARATOR;
+        return $this->appPath;
     }
 
+    public function getNamespace()
+    {
+        return $this->namespace;
+    }
+
+    public function parseController(string $path)
+    {
+        $controller = ucwords(str_replace('/',' ',$path));
+        $controller = str_replace(' ','\\',$controller);
+        return $this->namespace.'\\controller\\'.$controller;
+    }
+    
     public function run()
     {
-        $request = $this->get('request');
-        $this->route($request);
+        $this->route();
     }
 
-    protected function route($request)
+    protected function route()
     {
         $this->route->loadRoutes();
-        $this->route->dispatch($request);
+        $this->route->dispatch();
     }
 
 }

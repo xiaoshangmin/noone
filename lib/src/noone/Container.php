@@ -2,10 +2,6 @@
 
 namespace noone;
 
-use Closure;
-use Exception;
-use ReflectionClass;
-use ReflectionFunction;
 
 class Container implements ContainerInterface
 {
@@ -36,32 +32,47 @@ class Container implements ContainerInterface
 
     public function invokeFunc($func)
     {
-        $reflect = new ReflectionFunction($func);
-        $parameters = $reflect->getParameters();
-        $args = [];
-        foreach ($parameters as $key => $param) {
-            $class = $param->getClass();
-            if ($class) {
-                $args[] = $this->invokeClass($class->getName());
-            }
+        try
+        {
+            $reflect = new \ReflectionFunction($func);
+        }catch (\ReflectionException $e){
+            throw new Exception($e->getMessage());
         }
+//        $parameters = $reflect->getParameters();
+//        $args = [];
+//        foreach ($parameters as $key => $param) {
+//            $class = $param->getClass();
+//            if ($class) {
+//                $args[] = $this->invokeClass($class->getName());
+//            }
+//        }
+        $args = $this->bindParams($reflect);
         return $func(...$args);
     }
 
     public function invokeClass(string $class)
     {
         try {
-            $reflect = new ReflectionClass($class);
-        } catch (ReflectionException $e) {
+            $reflect = new \ReflectionClass($class);
+        } catch (\ReflectionException $e) {
             throw new Exception($e->getMessage());
         }
 
-        $construct = $reflect->getConstructor(); 
-//        $params = $construct ? $this->getParams($construct) : [];
-        $args = $this->bindParams($construct);
+        $construct = $reflect->getConstructor();
+        $args = $construct ? $this->bindParams($construct) : [];
         return $reflect->newInstanceArgs($args);
     }
 
+    public function invokeMethod(object $instance,string $method)
+    {
+        try{
+            $reflect = new \ReflectionMethod($instance,$method);
+        }catch (\ReflectionException $e){
+            throw new Exception($e->getMessage());
+        }
+        $args = $this->bindParams($reflect);
+        return $reflect->invokeArgs($instance,$args);
+    }
 
     public function bind($service, $provider, $singleton = false)
     {

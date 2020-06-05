@@ -15,9 +15,12 @@ class Route
 
     protected App $app;
 
-    public function __construct(App $app)
+    protected Request $request;
+
+    public function __construct(App $app,Request $request)
     { 
         $this->app = $app;
+        $this->request = $request;
     }
 
     public static function __callStatic(string $method, array $arguments)
@@ -39,29 +42,43 @@ class Route
         }
     }
 
-    public function dispatch(Request $request)
+    public function dispatch()
     {
-        $uri = parse_url($request->server('REQUEST_URI'), PHP_URL_PATH);
-        if ('/' != $uri) {
-            $uri = rtrim($uri, '/');
-        }
+        $uri = $this->parseUrl($this->request->server('REQUEST_URI'));
         $found_route = false;
-        $method = $request->server('REQUEST_METHOD');
+        $method = $this->request->server('REQUEST_METHOD');
+        //首先查找显示路由
         $route_index = array_keys(self::$routes, $uri);
         foreach ($route_index as $index) {
             if ((self::$methods[$index] == $method) && isset(self::$callbacks[$index])) {
                 if (is_string(self::$callbacks[$index])){
-
+                    print_r(self::$callbacks[$index]);
+                    exit();
                 }else
                 {
-                    Container::getInstance()->exec(self::$callbacks[$index]);
+                    $this->app->exec(self::$callbacks[$index]);
                 }
-                return;
+                $found_route = true;
+                break;
             }
         }
 
+        //查找隐式路由
         if (!$found_route){
-            $this->parseUrl();
+            $path = $this->parseUrl($this->request->server('REQUEST_URI'));
+            $class = $this->app->parseController($path[0]);
+            if (class_exists($class)){
+                $instance = $this->app->exec($class);
+                $action = $path[1];
+                if (is_callable([$instance,$action])){
+                    $res = $this->app->invokeMethod($instance,$action);
+                    print_r($res);
+                }else{
+                    echo $action;
+                }
+
+            }
+            $found_route = true;
         }
 
         if (!$found_route) {
@@ -71,7 +88,7 @@ class Route
                 };
                 call_user_func(self::$error);
             } elseif (is_string(self::$error)) {
-                self::get($request->server('REQUEST_URI'), self::$error);
+                self::get($this->request->server('REQUEST_URI'), self::$error);
             } elseif (self::$error instanceof \Closure) {
                 call_user_func(self::$error);
             }
@@ -80,6 +97,27 @@ class Route
 
     protected function parseUrl(string $url)
     {
+        $uri = parse_url($url, PHP_URL_PATH);
+        $uri = trim($uri,'/');
+        if (empty($uri)){
+            return [];
+        }
+        $path = explode('/',$uri);
+        //TODO 可配置默认值
+        $controller = $action = 'index';
+        if (!empty($path)){
+            if(count($path) >= 3)
+            {
+                $module = array_shift($path);
+                $controller = array_shift($path);
+                $controller = "{$module}/{$controller}";
+                $action = array_shift($path);
+            }else{
+                $controller = array_shift($path);
+                $action = array_shift($path) ?: 'index';
+            }
+        }
 
+        return [$controller,$action];
     }
 }
