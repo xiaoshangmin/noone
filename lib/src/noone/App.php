@@ -1,4 +1,4 @@
-$this->routePath = $this->app->getRootPath() . 'route' . DIRECTORY_SEPARATOR;<?php
+<?php
 
 namespace noone;
 
