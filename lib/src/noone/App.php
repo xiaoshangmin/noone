@@ -25,18 +25,23 @@ class App extends Container
     {
         $this->libPath = dirname(__DIR__) . DIRECTORY_SEPARATOR;
         $this->rootPath    = $rootPath ? rtrim($rootPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : $this->getDefaultRootPath();
-        $this->appPath =  $this->rootPath. DIRECTORY_SEPARATOR . 'app';
-        $this->routePath = $this->rootPath . 'route' . DIRECTORY_SEPARATOR;
+        $this->appPath =  $this->rootPath . 'app' . DIRECTORY_SEPARATOR;
+        $this->routePath = $this->appPath . 'route' . DIRECTORY_SEPARATOR;
     }
 
     public function getDefaultRootPath()
     {
-        return dirname(dirname($this->libPath)) . DIRECTORY_SEPARATOR ;
+        return dirname(dirname($this->libPath)) . DIRECTORY_SEPARATOR;
     }
 
     public function getAppPath(): string
     {
         return $this->appPath;
+    }
+
+    public function getRoutePath(): string
+    {
+        return $this->routePath;
     }
 
     public function getNamespace()
@@ -46,20 +51,22 @@ class App extends Container
 
     public function parseController(string $path)
     {
-        $controller = ucwords(str_replace('/',' ',$path));
-        $controller = str_replace(' ','\\',$controller);
-        return $this->namespace.'\\controller\\'.$controller;
+        $controller = ucwords(str_replace('/', ' ', $path));
+        $controller = str_replace(' ', '\\', $controller);
+        return $this->namespace . '\\controller\\' . $controller;
     }
-    
+
     public function run()
     {
-        $this->route();
+        $this->route()->send();
+        // $this->response->output();
     }
 
     protected function route()
     {
+        //加载显示路由
         $this->route->loadRoutes();
-        $this->route->dispatch();
+        //分发
+        return $this->route->dispatch($this->get('request'));
     }
-
 }

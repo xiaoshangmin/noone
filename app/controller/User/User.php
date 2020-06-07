@@ -16,7 +16,7 @@ class User
 
     public function index()
     {
-        echo __FUNCTION__;
+        return __CLASS__;
     }
 
 }

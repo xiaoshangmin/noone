@@ -2,6 +2,7 @@
 
 namespace noone;
 
+use Exception;
 
 class Container implements ContainerInterface
 {
@@ -18,71 +19,62 @@ class Container implements ContainerInterface
         return static::$instance;
     }
 
-    public function exec($abstract)
+    public function getObject($abstract, array $vars = [])
     {
-        if ($abstract instanceof Closure) {
+        if ($abstract instanceof \Closure) {
             //匿名函数
-            $object = $this->invokeFunc($abstract);
+            $object = $this->invokeFunc($abstract, $vars);
         } else {
             //类
-            $object = $this->invokeClass($abstract);
+            $object = $this->invokeClass($abstract, $vars);
         }
         return $object;
     }
 
-    public function invokeFunc($func)
+    public function invokeFunc($func, array $vars=[])
     {
-        try
-        {
+        try {
             $reflect = new \ReflectionFunction($func);
-        }catch (\ReflectionException $e){
-            throw new Exception($e->getMessage());
+        } catch (\ReflectionException $e) {
+            throw new \Exception($e->getMessage());
         }
-//        $parameters = $reflect->getParameters();
-//        $args = [];
-//        foreach ($parameters as $key => $param) {
-//            $class = $param->getClass();
-//            if ($class) {
-//                $args[] = $this->invokeClass($class->getName());
-//            }
-//        }
-        $args = $this->bindParams($reflect);
+        $args = $this->bindParams($reflect, $vars);
         return $func(...$args);
     }
 
-    public function invokeClass(string $class)
+    public function invokeClass(string $class, array $vars=[])
     {
         try {
             $reflect = new \ReflectionClass($class);
         } catch (\ReflectionException $e) {
-            throw new Exception($e->getMessage());
+            throw new \Exception($e->getMessage());
         }
 
         $construct = $reflect->getConstructor();
-        $args = $construct ? $this->bindParams($construct) : [];
+        $args = $construct ? $this->bindParams($construct, $vars) : [];
         return $reflect->newInstanceArgs($args);
     }
 
-    public function invokeMethod(object $instance,string $method)
+    public function invokeMethod(object $instance, string $method, array $vars=[])
     {
-        try{
-            $reflect = new \ReflectionMethod($instance,$method);
-        }catch (\ReflectionException $e){
-            throw new Exception($e->getMessage());
+        try {
+            $reflect = new \ReflectionMethod($instance, $method);
+        } catch (\ReflectionException $e) {
+            throw new \Exception($e->getMessage());
         }
-        $args = $this->bindParams($reflect);
-        return $reflect->invokeArgs($instance,$args);
+        $args = $this->bindParams($reflect, $vars);
+        return $reflect->invokeArgs($instance, $args);
     }
 
     public function bind($service, $provider, $singleton = false)
     {
 
         if ($singleton && !is_object($provider)) {
-            throw new Exception("error1");
+            throw new \Exception("error1");
         }
 
         if (!$singleton && !class_exists($provider)) {
-            throw new Exception("error2");
+            throw new \Exception("error2");
         }
         $this->bind[$service] = [
             'provider' => $provider,
@@ -91,43 +83,42 @@ class Container implements ContainerInterface
     }
 
 
-    public function bindParams(\ReflectionFunctionAbstract $reflection)
+    public function bindParams(\ReflectionFunctionAbstract $reflection, array $vars = []): array
     {
         $params = [];
+        if ($reflection->getNumberOfParameters() == 0) {
+            return $params;
+        }
         $parameters = $reflection->getParameters();
         foreach ($parameters as $param) {
             $paramClassObj = $param->getClass();
-            if ($paramClassObj) {//有对象参数
-                $paramClassObjName = $paramClassObj->getName();
-//                //已经有绑定记录
-//                if (array_key_exists($paramName, $this->bind)) {
-//                    if ($this->bind[$paramName]['singleton']) {
-//                        $params['params'][] = $this->bind[$paramClassName]['provider'];
-//                    } else {
-//                        $params['params'][] = static::getInstance($this->bind[$paramClassName]['provider']);
-//                    }
-//                } else{
-//                    //没有绑定的记录
-//                    $params['params'][] = $this->exec($paramClassName);
-//                }
-                $params[] = $this->exec($paramClassObjName);
-
-            }else {
-                $paramName = $param->getName();
-
-                $defaultValue  = '';
-                if ($param->isDefaultValueAvailable()) {
-                    $defaultValue = $param->getDefaultValue();
+            $paramName = $param->getName();
+            //有对象参数
+            if ($paramClassObj) {
+                $tempVars = $vars;
+                $temp = array_shift($tempVars);
+                //是否传入对应对象的实例
+                if ($temp instanceof $paramClassObj) {
+                    $params[] = $paramClassObj;
+                    $vars = array_shift($vars);
+                } else {
+                    $paramClassObjName = $paramClassObj->getName();
+                    $params[] = $this->getObject($paramClassObjName);
                 }
-//                $type = $param->getType()->getName();
+            } else if (isset($vars[$paramName])) {
+                $params[] = $vars[$paramName];
+            } elseif ($param->isDefaultValueAvailable()) {
+                $defaultValue = $param->getDefaultValue();
                 $params[$paramName] = $defaultValue;
+            } else {
+                throw new Exception("param '{$paramName}' miss");
             }
         }
         return $params;
     }
 
     public function __get($name)
-    { 
+    {
         return $this->get($name);
     }
 
@@ -135,13 +126,12 @@ class Container implements ContainerInterface
     public function get(string $abstract)
     {
         if (isset($this->alias[$abstract])) {
-            return $this->exec($this->alias[$abstract]);
+            return $this->getObject($this->alias[$abstract]);
         }
         throw new \Exception('class not exists');
     }
 
     public function has(string $abstract)
     {
-        
     }
 }
