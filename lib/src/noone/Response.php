@@ -24,7 +24,7 @@ abstract class Response
     public static function create($data, string $type = 'json', int $code = 200): Response
     {
         $class = "\\noone\\response\\" . ucfirst(strtolower($type));
-        return Container::getInstance()->getObject($class, ['data' => $data, $code]);
+        return Container::getInstance()->resolve($class, ['data' => $data, $code]);
     }
 
     public function send()

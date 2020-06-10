@@ -59,7 +59,7 @@ class Route
                     $path = $this->parseUrl(self::$callbacks[$index]);
                     $class = $this->app->parseController($path[0]);
                     if (class_exists($class)) {
-                        $instance = $this->app->getObject($class);
+                        $instance = $this->app->resolve($class);
                         $action = $path[1];
                         if (is_callable([$instance, $action])) {
                             $data = $this->app->invokeMethod($instance, $action);
@@ -69,7 +69,7 @@ class Route
                         }
                     }
                 } else {
-                    $this->app->getObject(self::$callbacks[$index]);
+                    $this->app->resolve(self::$callbacks[$index]);
                 }
             }
         }
@@ -78,7 +78,7 @@ class Route
         $path = $this->parseUrl($uri);
         $class = $this->app->parseController($path[0]);
         if (class_exists($class)) {
-            $instance = $this->app->getObject($class);
+            $instance = $this->app->resolve($class);
             $action = $path[1];
             if (is_callable([$instance, $action])) {
                 $res = $this->app->invokeMethod($instance, $action);

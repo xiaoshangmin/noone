@@ -12,6 +12,7 @@ class App extends Container
         'response' => Response::class,
         'cache' => Cache::class,
         'route' =>  Route::class,
+        'exceptions' => HandleExceptions::class
     ];
 
 
@@ -27,6 +28,8 @@ class App extends Container
         $this->rootPath    = $rootPath ? rtrim($rootPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : $this->getDefaultRootPath();
         $this->appPath =  $this->rootPath . 'app' . DIRECTORY_SEPARATOR;
         $this->routePath = $this->appPath . 'route' . DIRECTORY_SEPARATOR;
+
+        date_default_timezone_set('Asia/Shanghai');
     }
 
     public function getDefaultRootPath()
@@ -58,6 +61,8 @@ class App extends Container
 
     public function run()
     {
+        //注册异常处理
+        $this->resolve(HandleExceptions::class);
         $this->route()->send();
         // $this->response->output();
     }
@@ -69,4 +74,5 @@ class App extends Container
         //分发
         return $this->route->dispatch($this->get('request'));
     }
+ 
 }
