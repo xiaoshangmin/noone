@@ -15,6 +15,15 @@ class App extends Container
         'exceptions' => HandleExceptions::class
     ];
 
+    protected array $bootstrappers = [
+        \noone\Request::class,
+        \noone\Response::class,
+        \noone\Cache::class,
+        \noone\Router::class,
+        \noone\App::class,
+        \noone\HandleExceptions::class
+    ];
+
 
     protected string $libPath = '';
     protected string $appPath = '';
@@ -30,6 +39,13 @@ class App extends Container
         $this->routePath = $this->appPath . 'route' . DIRECTORY_SEPARATOR;
 
         date_default_timezone_set('Asia/Shanghai');
+    }
+
+    public function bootstrap()
+    {
+        foreach ($this->bootstrappers as $bootstrap) {
+            $this->bind($bootstrap);
+        }
     }
 
     public function getDefaultRootPath()
@@ -74,5 +90,4 @@ class App extends Container
         //分发
         return $this->route->dispatch($this->get('request'));
     }
- 
 }
