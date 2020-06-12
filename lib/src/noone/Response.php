@@ -72,5 +72,15 @@ abstract class Response
         return $this->code;
     }
 
+    public function toResponse($data)
+    {
+        if ($data instanceof self) {
+            $response = $data;
+        } else {
+            $response = self::create($data, 'html');
+        }
+        return $response;
+    }
+
     abstract protected function format($data);
 }

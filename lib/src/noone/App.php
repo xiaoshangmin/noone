@@ -63,9 +63,8 @@ class App extends Container
     public function run()
     {
         //注册异常处理
-        $this->resolve(HandleExceptions::class);
+        // $this->resolve(HandleExceptions::class);
         $this->route()->send();
-        // $this->response->output();
     }
 
     protected function route()

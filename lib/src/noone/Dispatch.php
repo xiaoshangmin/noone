@@ -30,14 +30,5 @@ class Dispatch
             throw new Exception('class not exists:' . $class);
         }
     }
-
-    protected function toResponse($data): Response
-    {
-        if ($data instanceof Response) {
-            $response = $data;
-        } else {
-            $response = Response::create($data, 'html');
-        }
-        return $response;
-    }
+ 
 }

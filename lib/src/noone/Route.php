@@ -49,7 +49,7 @@ class Route
         }
     }
 
-    public function dispatch(Request $request)
+    public function dispatch(Request $request):Response
     {
         $uri = $request->server('REQUEST_URI');
         $method = $request->server('REQUEST_METHOD');
@@ -58,13 +58,15 @@ class Route
         foreach ($route_index as $index) {
             if ((self::$methods[$index] == $method) && isset(self::$callbacks[$index])) {
                 if (is_string(self::$callbacks[$index])) {
-                    return $this->exec(self::$callbacks[$index]);
+                    $data = $this->exec(self::$callbacks[$index]);
                 } else {
-                    return $this->app->resolve(self::$callbacks[$index]);
+                    $data = $this->app->resolve(self::$callbacks[$index]);
                 }
+                return $this->app->response->toResponse($data);
             }
         }
-        return $this->exec($uri);
+        $data = $this->exec($uri);
+        return $this->app->response->toResponse($data);
     }
 
     public function exec(string $uri)

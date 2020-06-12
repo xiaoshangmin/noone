@@ -21,7 +21,7 @@ class Container implements ContainerInterface
         return static::$instance;
     }
 
-    public function resolve(string $abstract, array $vars = [])
+    public function resolve($abstract, array $vars = [])
     {
         $abstract = $this->getAlias($abstract);
         if ($abstract instanceof \Closure) {
@@ -35,7 +35,7 @@ class Container implements ContainerInterface
     }
 
 
-    public function getAlias(string $abstract): string
+    public function getAlias($abstract)
     {
         if (isset($this->alias[$abstract])) {
             return $this->alias[$abstract];
