@@ -11,6 +11,9 @@ class Route
 
     public static array $routes = [];
 
+    /**
+     * Closure|string
+     */
     public static array $callbacks = [];
 
     public static $error;
@@ -46,68 +49,48 @@ class Route
         }
     }
 
-    public function dispatch(Request $request): Response
+    public function dispatch(Request $request)
     {
         $uri = $request->server('REQUEST_URI');
         $method = $request->server('REQUEST_METHOD');
-        //首先查找显示路由
         $route_index = array_keys(self::$routes, $uri);
-        //循环查找对应请求动作的路由
+        //循环查找显示路由
         foreach ($route_index as $index) {
             if ((self::$methods[$index] == $method) && isset(self::$callbacks[$index])) {
                 if (is_string(self::$callbacks[$index])) {
-                    $path = $this->parseUrl(self::$callbacks[$index]);
-                    $class = $this->app->parseController($path[0]);
-                    if (class_exists($class)) {
-                        $instance = $this->app->resolve($class);
-                        $action = $path[1];
-                        if (is_callable([$instance, $action])) {
-                            $data = $this->app->invokeMethod($instance, $action);
-                            return $this->getResponse($data);
-                        } else {
-                            throw new Exception("The function '{$action}' of Class '{$class}' is not exists");
-                        }
-                    }
+                    return $this->exec(self::$callbacks[$index]);
                 } else {
-                    $this->app->resolve(self::$callbacks[$index]);
+                    return $this->app->resolve(self::$callbacks[$index]);
                 }
             }
         }
+        return $this->exec($uri);
+    }
 
-        //查找隐式路由 
-        $path = $this->parseUrl($uri);
+    public function exec(string $uri)
+    {
+        $path = $this->parseUri($uri);
         $class = $this->app->parseController($path[0]);
         if (class_exists($class)) {
             $instance = $this->app->resolve($class);
             $action = $path[1];
             if (is_callable([$instance, $action])) {
-                $res = $this->app->invokeMethod($instance, $action);
-                return $this->getResponse($res);
-            } else { 
-                throw new Exception("The function '{$action}' of Class '{$class}' is not exists");
+                return $this->app->invokeMethod($instance, $action);
+            } else {
+                throw new Exception("The action '{$action}' of Class '{$class}' is not exists");
             }
         } else {
             throw new Exception('class not exists:' . $class);
         }
     }
 
-    protected function getResponse($data): Response
-    {
-        if ($data instanceof Response) {
-            $response = $data;
-        } else {
-            $response = Response::create($data, 'html');
-        }
-        return $response;
-    }
-
-    protected function parseUrl(string $url)
+    protected function parseUri(string $uri)
     {
         //默认的控制器和动作
         $controller = $action = 'index';
-        $uri = parse_url($url, PHP_URL_PATH);
-        $uri = trim($uri, '/');
+        // $uri = parse_url($uri, PHP_URL_PATH);
         if (!empty($uri)) {
+            $uri = trim($uri, '/');
             $path = explode('/', $uri);
 
             if (!empty($path)) {

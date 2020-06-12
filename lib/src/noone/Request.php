@@ -3,7 +3,7 @@
  * @@Copyright (C), 2019-2020: 甲木公司
  * @Author: xsm
  * @Date: 2020-03-18 09:44:58
- * @LastEditTime: 2020-03-31 18:48:42
+ * @LastEditTime: 2020-06-12 18:11:37
  * @Description: 
  */
 
@@ -18,17 +18,19 @@ class Request
     public array $input = [];
     public array $server = [];
     public array $header = [];
-    public array $file = [];
+    public array $files = [];
     public array $cookie = [];
+    protected string $controller = '';
+    protected string $action = '';
 
     public function __construct()
     {
         $this->request = $_REQUEST;
         $this->get = $_GET;
-        $this->input = file_get_contents('php://input')?:[];
+        $this->input = file_get_contents('php://input') ?: [];
         $this->post = $_POST;
         $this->server = $_SERVER;
-        $this->file = $_FILES??[];
+        $this->files = $_FILES ?? [];
         $this->cookie = $_COOKIE;
         if (function_exists('apache_request_headers')) {
             $header = apache_request_headers();
@@ -89,7 +91,7 @@ class Request
         return $this->input[$name] ?? $default;
     }
 
-    public function cookie(string $name = '',string $default = '')
+    public function cookie(string $name = '', string $default = '')
     {
         if (empty($name)) {
             return $this->cookie;
@@ -97,22 +99,42 @@ class Request
         return $this->cookie[$name] ?? $default;
     }
 
-    public function method():string
+    public function method(): string
     {
-        return $this->server('REQUEST_METHOD')?:'GET';
+        return $this->server('REQUEST_METHOD') ?: 'GET';
     }
 
-    public function ip():string
+    public function getController()
+    {
+        return $this->controller;
+    }
+
+    public function setController(string $controller)
+    {
+        $this->controller = $controller;
+    }
+
+    public function getAction()
+    {
+        return $this->action;
+    }
+
+    public function setAction(string $action)
+    {
+        $this->action = $action;
+    }
+
+    public function ip(): string
     {
         return $this->server('REMOTE_ADDR');
     }
 
-    public function isCgi():bool
+    public function isCgi(): bool
     {
-        return 0 === strpos(PHP_SAPI,'cgi');
+        return 0 === strpos(PHP_SAPI, 'cgi');
     }
 
-    public function isCli():bool
+    public function isCli(): bool
     {
         return PHP_SAPI == 'cli';
     }

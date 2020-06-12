@@ -2,113 +2,149 @@
 
 namespace noone;
 
-use Closure;
 use Exception;
-use ReflectionClass;
-use ReflectionException;
-use ReflectionFunction;
-use ReflectionFunctionAbstract;
 
-class Container
+class Container implements ContainerInterface
 {
 
-    protected static array $services = [];
-    protected array $instance = []; 
+    protected static $instance = null;
 
-    public function singleton($service, $provider = null)
+    protected $instances = [];
+
+    protected array $alias = [];
+
+    public static function getInstance()
     {
-        $this->bind($service, $provider, true);
+        if (is_null(static::$instance)) {
+            static::$instance = new static;
+        }
+        return static::$instance;
     }
 
-    /**
-     * 
-     *
-     * @param string $service 注册的服务
-     * @param [type] $provider 服务的提供者
-     * @param boolean $singleton 是否是单例
-     * @return void
-     * @author xsm
-     * @since 2020-06-11
-     */
-    public function bind(string $service, $provider = null, $singleton = false)
+    public function resolve(string $abstract, array $vars = [])
     {
-        if (is_null($provider)) {
-            $provider = $service;
-        }
-
-        if ($singleton && !is_object($provider)) {
-            throw new Exception('singleton provider must be an instance');
-        }
-
-        if (!$singleton && !class_exists($provider)) {
-            throw new Exception('provider class not exists!');
-        }
-
-        self::$services[$service] = [
-            'provider' => $provider,
-            'singleton' => $singleton
-        ];
-    }
-
-    public function make($service, array $vars = [])
-    {
-        if ($service instanceof Closure) {
-            $object = $this->invokeFunc($service, $vars);
+        $abstract = $this->getAlias($abstract);
+        if ($abstract instanceof \Closure) {
+            //匿名函数
+            $object = $this->invokeFunc($abstract, $vars);
         } else {
-            $object = $this->invokeClass($service, $vars);
+            //类
+            $object = $this->invokeClass($abstract, $vars);
         }
         return $object;
     }
 
-    public function getProvider($service)
+
+    public function getAlias(string $abstract): string
     {
-        if (isset(self::$services[$service])) {
-            return self::$services[$service]['provider'];
+        if (isset($this->alias[$abstract])) {
+            return $this->alias[$abstract];
         }
+        return $abstract;
     }
 
-    public function invokeFunc($service, $vars = [])
+    public function invokeFunc($func, array $vars = [])
     {
-        $reflection = new ReflectionFunction($service);
-        $args = $this->bindParams($reflection, $vars);
-        return $service(...$args);
+        try {
+            $reflect = new \ReflectionFunction($func);
+        } catch (\ReflectionException $e) {
+            throw new \Exception("function not exists ($func}() " . $e->getMessage());
+        }
+        $args = $this->bindParams($reflect, $vars);
+        return $func(...$args);
     }
 
-    public function invokeClass($service, $vars = [])
+    public function invokeClass(string $class, array $vars = [])
     {
-        $reflection = new ReflectionClass($service);
-        $construct = $reflection->getConstructor();
+        try {
+            $reflect = new \ReflectionClass($class);
+        } catch (\ReflectionException $e) {
+            throw new \Exception('class not exists ' . $e->getMessage());
+        }
+
+        $construct = $reflect->getConstructor();
         $args = $construct ? $this->bindParams($construct, $vars) : [];
-        return $reflection->newInstanceArgs($args);
+        return $reflect->newInstanceArgs($args);
     }
 
-    public function bindParams(ReflectionFunctionAbstract $reflection, array $vars = [])
+    public function invokeMethod(object $instance, string $method, array $vars = [])
+    {
+        try {
+            $reflect = new \ReflectionMethod($instance, $method);
+        } catch (\ReflectionException $e) {
+            throw new \Exception("method not exists " . $e->getMessage());
+        }
+        $args = $this->bindParams($reflect, $vars);
+        return $reflect->invokeArgs($instance, $args);
+    }
+
+    public function bind($service, $provider, $singleton = false)
+    {
+
+        if ($singleton && !is_object($provider)) {
+            throw new \Exception("error1");
+        }
+
+        if (!$singleton && !class_exists($provider)) {
+            throw new \Exception("error2");
+        }
+        $this->bind[$service] = [
+            'provider' => $provider,
+            'singleton' => $singleton,
+        ];
+    }
+
+
+    public function bindParams(\ReflectionFunctionAbstract $reflection, array $vars = []): array
     {
         $params = [];
-        if (0 == $reflection->getNumberOfParameters()) {
+        if ($reflection->getNumberOfParameters() == 0) {
             return $params;
         }
-
         $parameters = $reflection->getParameters();
-
         foreach ($parameters as $param) {
-            $class = $param->getClass();
+            $paramClassObj = $param->getClass();
             $paramName = $param->getName();
             //有对象参数
-            if ($class) {
-                if (isset($vars[$paramName]) && $vars[$paramName] instanceof $class) {
-                    $params[] = $vars[$paramName];
+            if ($paramClassObj) {
+                $tempVars = $vars;
+                $temp = array_shift($tempVars);
+                //是否传入对应对象的实例
+                if ($temp instanceof $paramClassObj) {
+                    $params[] = $paramClassObj;
+                    $vars = array_shift($vars);
                 } else {
-                    $params[] = $this->make($class);
+                    $paramClassObjName = $paramClassObj->getName();
+                    $params[] = $this->resolve($paramClassObjName);
                 }
-            } elseif (isset($vars[$paramName])) {
+            } else if (isset($vars[$paramName])) {
                 $params[] = $vars[$paramName];
             } elseif ($param->isDefaultValueAvailable()) {
-                $params[] = $param->getDefaultValue();
+                $defaultValue = $param->getDefaultValue();
+                $params[$paramName] = $defaultValue;
             } else {
-                throw new Exception("variable '{$paramName}' miss");
+                throw new Exception("param '{$paramName}' miss");
             }
         }
         return $params;
+    }
+
+    public function __get($name)
+    {
+        return $this->get($name);
+    }
+
+
+    public function get(string $abstract)
+    {
+        if (isset($this->alias[$abstract])) {
+            return $this->resolve($this->alias[$abstract]);
+        }
+        throw new \Exception('class not exists');
+    }
+
+    public function has(string $abstract): bool
+    {
+        return isset($this->alias[$abstract]) || $this->instances[$abstract];
     }
 }

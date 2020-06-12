@@ -34,7 +34,6 @@ abstract class Response
         $data = $this->format($data);
         $this->output($data);
         if (function_exists('fastcgi_finish_request')) {
-            // 提高页面响应
             fastcgi_finish_request();
         }
     }
