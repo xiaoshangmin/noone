@@ -7,6 +7,5 @@ define('LIB_PATH', dirname(__DIR__) . DIRECTORY_SEPARATOR . 'lib/src' . DIRECTOR
 require LIB_PATH . "noone/Autoloader.php";
 (new noone\Autoloader())->register();
 
-
 (new noone\App())->run();
 

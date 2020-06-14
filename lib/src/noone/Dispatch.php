@@ -14,21 +14,13 @@ class Dispatch
 
 
 
-    public function exec()
+    public function toResponse($data)
     {
-        $path = $this->parseUri($uri);
-        $class = $this->app->parseController($path[0]);
-        if (class_exists($class)) {
-            $instance = $this->app->resolve($class);
-            $action = $path[1];
-            if (is_callable([$instance, $action])) {
-                return $this->app->invokeMethod($instance, $action);
-            } else {
-                throw new Exception("The function '{$action}' of Class '{$class}' is not exists");
-            }
+        if ($data instanceof Response) {
+            $response = $data;
         } else {
-            throw new Exception('class not exists:' . $class);
+            $response = Response::create($data, 'html');
         }
-    }
- 
+        return $response;
+    } 
 }

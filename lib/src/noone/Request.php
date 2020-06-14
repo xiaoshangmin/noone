@@ -3,7 +3,7 @@
  * @@Copyright (C), 2019-2020: 甲木公司
  * @Author: xsm
  * @Date: 2020-03-18 09:44:58
- * @LastEditTime: 2020-06-12 18:11:37
+ * @LastEditTime: 2020-06-14 12:21:41
  * @Description: 
  */
 
@@ -45,6 +45,23 @@ class Request
             }
         }
         $this->header = array_change_key_case($header);
+    }
+
+    public function params():array
+    {
+        $method = $this->method();
+        $params = [];
+        switch ($method) {
+            case 'GET':
+                $params = $this->get();
+                break;
+            case 'POST':
+                $params = $this->post();
+                break;
+            default:
+                $params = [];
+        }
+        return $params;
     }
 
     public function server(string $name = '', string $default = '')

@@ -49,35 +49,38 @@ class Route
         }
     }
 
-    public function dispatch(Request $request):Response
+    public function dispatch(Request $request): Response
     {
-        $uri = $request->server('REQUEST_URI');
+        $path = parse_url($request->server('REQUEST_URI'), PHP_URL_PATH);
         $method = $request->server('REQUEST_METHOD');
-        $route_index = array_keys(self::$routes, $uri);
+        $route_index = array_keys(self::$routes, $path);
+
+        $params = $this->app->request->params();
         //循环查找显示路由
         foreach ($route_index as $index) {
             if ((self::$methods[$index] == $method) && isset(self::$callbacks[$index])) {
                 if (is_string(self::$callbacks[$index])) {
-                    $data = $this->exec(self::$callbacks[$index]);
+                    $data = $this->exec(self::$callbacks[$index], $params);
                 } else {
-                    $data = $this->app->resolve(self::$callbacks[$index]);
+                    $data = $this->app->invokeFunc(self::$callbacks[$index], $params);
                 }
-                return $this->app->response->toResponse($data);
+                return $this->app->dispatch->toResponse($data);
             }
         }
-        $data = $this->exec($uri);
-        return $this->app->response->toResponse($data);
+
+        $data = $this->exec($path, $params);
+        return $this->app->dispatch->toResponse($data);
     }
 
-    public function exec(string $uri)
+    public function exec(string $path, array $params)
     {
-        $path = $this->parseUri($uri);
+        $path = $this->parseUrlPath($path);
         $class = $this->app->parseController($path[0]);
         if (class_exists($class)) {
-            $instance = $this->app->resolve($class);
+            $instance = $this->app->make($class);
             $action = $path[1];
             if (is_callable([$instance, $action])) {
-                return $this->app->invokeMethod($instance, $action);
+                return $this->app->invokeMethod($instance, $action, $params);
             } else {
                 throw new Exception("The action '{$action}' of Class '{$class}' is not exists");
             }
@@ -86,24 +89,23 @@ class Route
         }
     }
 
-    protected function parseUri(string $uri)
+    protected function parseUrlPath(string $path)
     {
         //默认的控制器和动作
         $controller = $action = 'index';
-        // $uri = parse_url($uri, PHP_URL_PATH);
-        if (!empty($uri)) {
-            $uri = trim($uri, '/');
-            $path = explode('/', $uri);
+        if (!empty($path)) {
+            $path = trim($path, '/');
+            $urlPath = explode('/', $path);
 
-            if (!empty($path)) {
-                if (count($path) >= 3) {
-                    $module = array_shift($path);
-                    $controller = array_shift($path);
+            if (isset($urlPath[0]) && !empty($urlPath[0])) {
+                if (count($urlPath) >= 3) {
+                    $module = array_shift($urlPath);
+                    $controller = array_shift($urlPath);
                     $controller = "{$module}/{$controller}";
-                    $action = array_shift($path);
+                    $action = array_shift($urlPath);
                 } else {
-                    $controller = array_shift($path);
-                    $action = array_shift($path) ?: 'index';
+                    $controller = array_shift($urlPath);
+                    $action = array_shift($urlPath) ?: 'index';
                 }
             }
         }

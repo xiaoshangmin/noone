@@ -5,19 +5,19 @@ namespace noone;
 use ErrorException;
 use Throwable;
 
-class HandleExceptions
+class Exceptions
 {
 
 
     protected App $app;
 
-    public function __construct(App $app)
+    public function bootstrap(App $app)
     {
         $this->app = $app;
         error_reporting(-1);
         set_error_handler([$this, 'handleError']);
-        set_exception_handler([$this,'handleException']);
-        register_shutdown_function([$this,'handleShutDown']);
+        set_exception_handler([$this, 'handleException']);
+        register_shutdown_function([$this, 'handleShutDown']);
     }
 
 
@@ -34,17 +34,25 @@ class HandleExceptions
      */
     public function handleError(int $errno, string $errstr, string $errfile, int $errline)
     {
-        if (!(error_reporting() & $errno)) {
+
+        if (error_reporting() & $errno) {
             throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
         }
     }
 
     public function handleException(Throwable $ex)
     {
+        $this->getHandler()->report($ex);
+        // print_r($ex->getMessage());
     }
 
     public function handleShutDown()
     {
-        # code...
+        // echo 'showdown';
+    }
+
+    public function getHandler()
+    {
+        return $this->app->make(ExceptionsHanlder::class);
     }
 }

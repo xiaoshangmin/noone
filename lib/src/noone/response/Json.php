@@ -12,9 +12,10 @@ class Json extends Response
         'json_encode_param' => JSON_UNESCAPED_UNICODE
     ];
 
-    public function __construct($data)
+    public function __construct($data, int $code = 200)
     {
         $this->data = $data;
+        $this->code = $code;
         $this->setHeaders('Content-Type', 'application/json;charset=utf-8');
     }
 
@@ -22,7 +23,7 @@ class Json extends Response
     {
         try {
             $data = json_encode($data, $this->options['json_encode_param']);
-            
+
             if (false === $data) {
                 throw new Exception(json_last_error_msg());
             }

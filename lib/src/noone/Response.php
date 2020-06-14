@@ -12,7 +12,7 @@ abstract class Response
 
     public array $options = [];
 
-    public int $code = 200;
+    protected int $code = 200;
 
     public $data = null;
 
@@ -24,7 +24,7 @@ abstract class Response
     public static function create($data, string $type = 'json', int $code = 200): Response
     {
         $class = "\\noone\\response\\" . ucfirst(strtolower($type));
-        return Container::getInstance()->resolve($class, ['data' => $data, $code]);
+        return Container::getInstance()->make($class, [$data, $code]);
     }
 
     public function send()
@@ -72,15 +72,6 @@ abstract class Response
         return $this->code;
     }
 
-    public function toResponse($data)
-    {
-        if ($data instanceof self) {
-            $response = $data;
-        } else {
-            $response = self::create($data, 'html');
-        }
-        return $response;
-    }
 
     abstract protected function format($data);
 }

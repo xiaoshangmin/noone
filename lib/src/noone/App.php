@@ -12,15 +12,15 @@ class App extends Container
         'response' => Response::class,
         'cache' => Cache::class,
         'route' =>  Route::class,
-        'exceptions' => HandleExceptions::class
+        'log' => Log::class,
+        'dispatch' => Dispatch::class,
     ];
-
-
 
     protected string $libPath = '';
     protected string $appPath = '';
     protected string $routePath = '';
     protected string $rootPath = '';
+    protected string $runtimePath = '';
     protected string $namespace = 'app';
 
     public function __construct(string $rootPath = '')
@@ -29,7 +29,8 @@ class App extends Container
         $this->rootPath    = $rootPath ? rtrim($rootPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : $this->getDefaultRootPath();
         $this->appPath =  $this->rootPath . 'app' . DIRECTORY_SEPARATOR;
         $this->routePath = $this->appPath . 'route' . DIRECTORY_SEPARATOR;
-
+        $this->runtimePath = $this->appPath . 'runtime' . DIRECTORY_SEPARATOR;
+        $this->instances['noone\App'] = $this;
         date_default_timezone_set('Asia/Shanghai');
     }
 
@@ -48,11 +49,16 @@ class App extends Container
         return $this->routePath;
     }
 
-    public function getNamespace()
+    public function getNamespace(): string
     {
         return $this->namespace;
     }
 
+    public function getRuntimePath(): string
+    {
+        return $this->runtimePath;
+    }
+    
     public function parseController(string $path)
     {
         $controller = ucwords(str_replace('/', ' ', $path));
@@ -63,7 +69,8 @@ class App extends Container
     public function run()
     {
         //注册异常处理
-        // $this->resolve(HandleExceptions::class);
+        $this->make(Exceptions::class)->bootstrap($this);
+        //解析路由并返回数据
         $this->route()->send();
     }
 
@@ -72,6 +79,6 @@ class App extends Container
         //加载显示路由
         $this->route->loadRoutes();
         //分发
-        return $this->route->dispatch($this->get('request'));
+        return $this->route->dispatch($this->request);
     }
 }
