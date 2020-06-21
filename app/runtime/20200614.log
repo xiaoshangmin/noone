@@ -1,5 +1,0 @@
-[20200614 18:24:06] [0]Undefined variable: a[/var/www/html/noone/app/controller/Index.php:12]
-[20200614 18:24:07] [0]class not exists:app\controller\Favicon.ico[/var/www/html/noone/lib/src/noone/Route.php:88]
-[20200614 18:27:44] [0]class not exists:app\controller\Favicon.ico[/var/www/html/noone/lib/src/noone/Route.php:88]
-[20200614 18:27:58] [0]class not exists:app\controller\Favicon.ico[/var/www/html/noone/lib/src/noone/Route.php:88]
-[20200614 18:30:21] [0]class not exists:app\controller\Favicon.ico[/var/www/html/noone/lib/src/noone/Route.php:88]

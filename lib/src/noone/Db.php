@@ -2,6 +2,16 @@
 
 namespace noone;
 
-class Db{
-    
+class Db
+{
+
+    public function __construct(App $app)
+    {
+        
+    }
+
+    public function connection(string $id)
+    {
+
+    }
 }

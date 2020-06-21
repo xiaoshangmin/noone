@@ -1,8 +1,8 @@
 <?php
 
 namespace app\model\Content;
-
-class Video{
+use noone\Model;
+class Video extends Model{
 
     public function getById(int $id)
     {

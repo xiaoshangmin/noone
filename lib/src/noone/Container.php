@@ -26,6 +26,7 @@ class Container implements ContainerInterface
     public function make($abstract, array $vars = [])
     {
         $abstract = $this->getAlias($abstract);
+        
         if ($abstract instanceof Closure) {
             //匿名函数
             $object = $this->invokeFunc($abstract, $vars);
