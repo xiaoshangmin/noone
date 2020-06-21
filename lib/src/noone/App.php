@@ -59,17 +59,33 @@ class App extends Container
         return $this->runtimePath;
     }
     
-    public function parseController(string $path)
+    /**
+     * 获取控制器
+     *
+     * @param string $path
+     * @return string
+     * @author xsm
+     * @since 2020-06-19
+     */
+    public function parseController(string $path):string
     {
         $controller = ucwords(str_replace('/', ' ', $path));
         $controller = str_replace(' ', '\\', $controller);
         return $this->namespace . '\\controller\\' . $controller;
     }
 
+    /**
+     * 启动
+     *
+     * @return void
+     * @author xsm
+     * @since 2020-06-19
+     */
     public function run()
     {
         //注册异常处理
         $this->make(Exceptions::class)->bootstrap($this);
+        // php_sapi_name();
         //解析路由并返回数据
         $this->route()->send();
     }

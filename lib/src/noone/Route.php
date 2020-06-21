@@ -67,12 +67,21 @@ class Route
                 return $this->app->dispatch->toResponse($data);
             }
         }
-
+        //匹配隐式路由
         $data = $this->exec($path, $params);
         return $this->app->dispatch->toResponse($data);
     }
 
-    public function exec(string $path, array $params)
+    /**
+     * 解析路由
+     *
+     * @param string $path
+     * @param array $params
+     * @return void
+     * @author xsm
+     * @since 2020-06-19
+     */
+    protected function exec(string $path, array $params)
     {
         $path = $this->parseUrlPath($path);
         $class = $this->app->parseController($path[0]);
@@ -89,14 +98,21 @@ class Route
         }
     }
 
-    protected function parseUrlPath(string $path)
+    /**
+     * 解析url中的pathinfo
+     *
+     * @param string $path
+     * @return void
+     * @author xsm
+     * @since 2020-06-19
+     */
+    protected function parseUrlPath(string $path):array
     {
         //默认的控制器和动作
         $controller = $action = 'index';
-        if (!empty($path)) {
-            $path = trim($path, '/');
+        $path = trim($path, '/');
+        if ($path) {
             $urlPath = explode('/', $path);
-
             if (isset($urlPath[0]) && !empty($urlPath[0])) {
                 if (count($urlPath) >= 3) {
                     $module = array_shift($urlPath);

@@ -13,4 +13,31 @@ use noone\cache\Driver;
 
 class Redis extends Driver
 {
+    public function set($key, $val)
+    {
+    }
+
+    public function get($key)
+    {
+    }
+
+    public function delete($key)
+    {
+    }
+
+    public function has($key)
+    {
+    }
+
+    public function increment($key, $value)
+    {
+    }
+
+    public function decrement($key, $value = 1)
+    {
+    }
+
+    public function clear()
+    {
+    }
 }

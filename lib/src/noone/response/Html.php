@@ -17,6 +17,9 @@ class Html extends Response
 
     public function format($data):string
     {
-        return (string)$data;
+        if(is_array($data) || is_object($data)){
+            $data = var_export($data,true);
+        }
+        return $data;
     }
 }
