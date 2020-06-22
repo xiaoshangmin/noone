@@ -2,6 +2,8 @@
 
 namespace noone;
 
+use \noone\Model;
+
 class App extends Container
 {
 
@@ -99,7 +101,8 @@ class App extends Container
         $this->make(Config::class)->bootstrap($this);
         //注册异常处理
         $this->make(Exceptions::class)->bootstrap($this);
-        \noone\Model::setDb($this->db);
+        //
+        Model::setDb($this->db);
     }
 
     protected function route()

@@ -24,7 +24,6 @@ abstract class Model
     {
         $this->writeId = $writeId;
         $this->readId = $readId;
-        print_r(self::$db);
     }
 
     public static function setDb($db)
