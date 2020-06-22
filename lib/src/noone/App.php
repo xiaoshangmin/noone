@@ -19,6 +19,8 @@ class App extends Container
         'dispatch' => Dispatch::class,
     ];
 
+    protected bool $debug = false;
+
     protected string $libPath = '';
     protected string $appPath = '';
     protected string $rootPath = '';
@@ -101,8 +103,17 @@ class App extends Container
         $this->make(Config::class)->bootstrap($this);
         //注册异常处理
         $this->make(Exceptions::class)->bootstrap($this);
-        //
+        
         Model::setDb($this->db);
+        
+        if ($this->config['app.debug']) {
+            $this->debug = true;
+        }
+    }
+
+    public function isDebug(): bool
+    {
+        return $this->debug;
     }
 
     protected function route()

@@ -16,7 +16,8 @@ class User
 
     public function index()
     {
-        return __CLASS__;
+        gettype();
+        return $a;
     }
 
 }

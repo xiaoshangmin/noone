@@ -24,6 +24,7 @@ class ExceptionsHanlder
             'message' => $exception->getMessage(),
             'code'    => $exception->getCode(),
         ];
+        
         $log = "{$data['code']}, {$data['message']}, {$data['file']}:{$data['line']}";
 
         try {
@@ -34,7 +35,16 @@ class ExceptionsHanlder
 
 
 
-    public function render($request, Throwable $e)
+    public function render(Throwable $e)
     {
+        echo $e->getCode();
+        echo $e->getMessage();
+        $files = get_included_files();
+        
+        $str = '<br/>';
+        foreach($files as $index=>$files){
+            $str .= "{$index}:{$files}<br/>";
+        }
+        echo $str;
     }
 }

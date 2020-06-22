@@ -43,6 +43,9 @@ class Exceptions
     public function handleException(Throwable $ex)
     {
         $this->getHandler()->report($ex);
+        if ($this->app->isDebug()) {
+            $this->getHandler()->render($ex);
+        }
         // print_r($ex->getMessage());
     }
 
