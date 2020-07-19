@@ -26,7 +26,7 @@ class Container implements ContainerInterface
     public function make($abstract, array $vars = [])
     {
         $abstract = $this->getAlias($abstract);
-        
+
         if ($abstract instanceof Closure) {
             //匿名函数
             $object = $this->invokeFunc($abstract, $vars);
@@ -145,6 +145,10 @@ class Container implements ContainerInterface
     {
         if (isset($this->alias[$abstract])) {
             return $this->make($this->alias[$abstract]);
+        }
+        if (strlen($abstract) >= 6 && 'Model' == substr($abstract, -5)) {
+            $model = $this->parseModel(substr($abstract, 0, -5));
+            return $this->app->make($model);
         }
         throw new \Exception('class not exists');
     }

@@ -1,11 +1,4 @@
 <?php
-/*
- * @@Copyright (C), 2019-2020: 甲木公司
- * @Author: xsm
- * @Date: 2020-03-18 09:44:58
- * @LastEditTime: 2020-06-14 12:21:41
- * @Description: 
- */
 
 namespace noone;
 

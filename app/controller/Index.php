@@ -11,9 +11,11 @@ class Index extends Controller
 
     public function index(Request $req)
     {
-        $id = (new Video())->getById(9999);
+        // $id = (new Video())->getById(9999);
+        $id = $this->contentVideoModel->getById(99);
         
-        return $this->config['cache']['redis'][0];
+        return $id;
+        // return $this->config['cache']['redis'][0];
         // return Response::create([
         //     'code' => 200, 'msg' => 'ok', 'data' => [
         //         'id' => $id,

@@ -15,21 +15,6 @@ abstract class Controller
 
     public function __get(string $name)
     {
-        switch ($name) {
-            case 'config':
-                return $this->app->make('config');
-                break;
-            case 'request':
-                return $this->app->make('reqeust');
-                break;
-            case 'cache':
-                return $this->app->make('cache');
-                break;
-            case 'log':
-                return $this->app->make('log');
-                break;
-            default:
-                return false;
-        }
+        return $this->app->{$name};
     }
 }

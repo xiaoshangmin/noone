@@ -8,37 +8,32 @@ use PDOException;
 abstract class Model
 {
 
+    protected App $app;
     /**
      * 读库配置ID
      */
-    protected string $readId = '';
+    protected string $readId = 'default';
 
     /**
      * 写库配置ID
      */
-    protected string $writeId = '';
+    protected string $writeId = 'default';
 
-    protected static $db;
 
-    public function __construct(string $writeId = '', string $readId = '')
+    public function __construct(App $app)
     {
-        $this->writeId = $writeId;
-        $this->readId = $readId;
+        $this->app = $app;
     }
 
-    public static function setDb($db)
+
+    public function __get($abstract)
     {
-        self::$db = $db;
+        return $this->app->{$abstract};
     }
 
-    public function getDb()
+    public function __call(string $method, array $args = [])
     {
-        $database = $this->config['database.policys'];
-        $database = $database[$this->writeId];
-        $dsn = "{$database['driver']}:dbname={$database['dbname']};host={$database['host']}";
-        try {
-            new PDO($dsn, $database['username'], $database['password']);
-        } catch (PDOException $e) {
-        }
+        $method = strtolower($method);
+        return call_user_func_array([$this->app->db, $method], $args);
     }
 }

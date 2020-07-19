@@ -89,6 +89,8 @@ class Route
             $instance = $this->app->make($class);
             $action = $path[1];
             if (is_callable([$instance, $action])) {
+                $this->app->request->setController($path[0]);
+                $this->app->request->setAction($path[1]);
                 return $this->app->invokeMethod($instance, $action, $params);
             } else {
                 throw new Exception("The action '{$action}' of Class '{$class}' is not exists");
@@ -106,7 +108,7 @@ class Route
      * @author xsm
      * @since 2020-06-19
      */
-    protected function parseUrlPath(string $path):array
+    protected function parseUrlPath(string $path): array
     {
         //默认的控制器和动作
         $controller = $action = 'index';

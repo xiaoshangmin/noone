@@ -68,6 +68,22 @@ class App extends Container
     }
 
     /**
+     * 获取模型
+     *
+     * @param string $modelName
+     * @return string
+     * @author xsm
+     * @since 2020-07-18
+     */
+    public function parseModel(string $modelName): string
+    {
+        $name = preg_replace('/(.)(?=[A-Z])/', '$1\\', $modelName);
+        $name = ucwords(str_replace('\\', ' ', $name));
+        $name = str_replace(' ', '\\', $name);
+        return $this->namespace . '\\model\\' . $name;
+    }
+
+    /**
      * 获取控制器
      *
      * @param string $path
@@ -103,9 +119,9 @@ class App extends Container
         $this->make(Config::class)->bootstrap($this);
         //注册异常处理
         $this->make(Exceptions::class)->bootstrap($this);
-        
-        Model::setDb($this->db);
-        
+
+        // Model::setDb($this->db);
+
         if ($this->config['app.debug']) {
             $this->debug = true;
         }

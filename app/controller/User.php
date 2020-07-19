@@ -10,14 +10,14 @@
 
 
 namespace app\controller;
-
-class User
+use noone\{Response, Request,Controller};
+class User  extends Controller
 {
 
     public function index()
     {
-        gettype();
-        return $a;
+        
+        return $this->request->getAction();;
     }
 
 }

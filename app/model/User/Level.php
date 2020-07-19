@@ -1,7 +1,14 @@
-/*
- * @@Copyright (C), 2019-2020: 甲木公司
- * @Author: xsm
- * @Date: 2020-06-20 19:15:37
- * @LastEditTime: 2020-06-20 19:15:38
- * @Description: 
- */ 
+<?php
+
+namespace app\model\User;
+
+use noone\Model;
+class Level extends Model{
+
+    public function getList(int $id)
+    {
+        return [
+            1,2,3,4,5,6,7
+        ];
+    }
+}
