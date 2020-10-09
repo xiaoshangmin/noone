@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * 路由实现
+ */
 namespace noone;
 
 use Exception;
@@ -27,6 +29,15 @@ class Route
         $this->app = $app;
     }
 
+    /**
+     * 显示路由的注册
+     *
+     * @param string $method
+     * @param array $arguments
+     * @return void
+     * @author xsm
+     * @since 2020-10-09
+     */
     public static function __callStatic(string $method, array $arguments)
     {
 
@@ -38,6 +49,13 @@ class Route
         self::$routes[] = $routePath;
     }
 
+    /**
+     * 加载显示路由文件
+     *
+     * @return void
+     * @author xsm
+     * @since 2020-10-09
+     */
     public function loadRoutes()
     {
         $routePath = $this->app->getRoutePath();
@@ -49,9 +67,17 @@ class Route
         }
     }
 
+    /**
+     * 路由分发
+     *
+     * @param Request $request
+     * @return Response
+     * @author xsm
+     * @since 2020-10-09
+     */
     public function dispatch(Request $request): Response
     {
-        $path = parse_url($request->server('REQUEST_URI'), PHP_URL_PATH);
+        $path = parse_url($request->server('REQUEST_URI'), PHP_URL_PATH); 
         $method = $request->server('REQUEST_METHOD');
         $route_index = array_keys(self::$routes, $path);
 

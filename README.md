@@ -1,7 +1,4 @@
 # noone
-### 环境
-在mac和window快速搭建运行环境
-[docker镜像](https://github.com/xiaoshangmin/dnmp)
 
 ### 主要新特性
 采用PHP7强类型  
@@ -34,6 +31,12 @@ app                         应用目录
     ├── favicon.ico
     └── index.php
 ```
+> noone的运行环境要求PHP7.4+。
+
+### 快速搭建环境
+在mac和window快速搭建运行环境
+[docker镜像](https://github.com/xiaoshangmin/dnmp)
+
 ## 下载
 ```
 git clone https://github.com/xiaoshangmin/noone.git
@@ -87,3 +90,4 @@ git clone https://github.com/xiaoshangmin/noone.git
 
 ### TODO
     orm的实现
+    composer的支持

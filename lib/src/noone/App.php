@@ -2,8 +2,6 @@
 
 namespace noone;
 
-use \noone\Model;
-
 class App extends Container
 {
 
@@ -21,10 +19,29 @@ class App extends Container
 
     protected bool $debug = false;
 
+    /**
+     * 类库路径
+     */
     protected string $libPath = '';
+
+    /**
+     * 应用路径
+     */
     protected string $appPath = '';
+
+    /**
+     * 项目根目录
+     */
     protected string $rootPath = '';
+
+    /**
+     * 应用运行时目录
+     */
     protected string $runtimePath = '';
+
+    /**
+     * 应用的命名空间
+     */
     protected string $namespace = 'app';
 
     public function __construct(string $rootPath = '')
@@ -67,6 +84,10 @@ class App extends Container
         return $this->runtimePath;
     }
 
+    public function isDebug(): bool
+    {
+        return $this->debug;
+    }
     /**
      * 获取模型
      *
@@ -99,7 +120,7 @@ class App extends Container
     }
 
     /**
-     * 启动
+     * 启动应用
      *
      * @return void
      * @author xsm
@@ -118,20 +139,13 @@ class App extends Container
         //加载配置
         $this->make(Config::class)->bootstrap($this);
         //注册异常处理
-        $this->make(Exceptions::class)->bootstrap($this);
-
-        // Model::setDb($this->db);
+        $this->make(Exceptions::class)->bootstrap($this); 
 
         if ($this->config['app.debug']) {
             $this->debug = true;
         }
     }
-
-    public function isDebug(): bool
-    {
-        return $this->debug;
-    }
-
+ 
     protected function route()
     {
         //加载显示路由

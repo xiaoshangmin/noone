@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * 自动加载类
+ */
 namespace noone;
 
 class Autoloader
