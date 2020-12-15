@@ -35,7 +35,7 @@ app                         应用目录
 
 ### 快速搭建环境
 在mac和window快速搭建运行环境
-[docker镜像](https://github.com/xiaoshangmin/dnmp)
+[我的本地环境docker镜像](https://github.com/xiaoshangmin/dnmp)
 
 ## 下载
 ```
